@@ -5,7 +5,6 @@ __pycache__/
 venv/
 .vscode/
 
-# Keep email content and artifacts trained from it out of the public repository.
-/emails.csv
+# Keep generated artifacts trained from the dataset out of the repository.
 /model.pkl
 /vectorizer.pkl

@@ -24,9 +24,9 @@ The app treats class 1 as the positive phishing-risk class.
 
 The training script uses the combined subject and body as model input. The
 remaining fields are retained as dataset metadata and are not model features.
-The dataset is not tracked in the public repository because it contains sender
-addresses and email bodies. Provide an appropriately licensed local emails.csv
-before training.
+The dataset is from the Kaggle listing "Phishing Email Dataset" by Naser
+Abdullah Alam and is distributed under CC BY-SA 4.0. See README.md for
+attribution and the requested research citation.
 
 
 COMPONENTS
@@ -177,7 +177,7 @@ NOTES
 - Run the Python commands from the project directory.
 - Keep the Flask API running while using the Gmail extension.
 - Retrain the model after changing the dataset.
-- The email dataset and generated model artifacts are intentionally excluded
-  from the repository; supply a local dataset and train before starting the API.
+- The generated model artifacts are intentionally excluded from the repository;
+  train locally before starting the API.
 - This project is provided as-is for learning and demonstration purposes.
 ================================================================================

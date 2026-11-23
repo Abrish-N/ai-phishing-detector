@@ -11,13 +11,17 @@ A machine-learning phishing email detector with a Flask prediction API and a Chr
 
 ## Dataset
 
-The training dataset is not included in this repository because it contains email sender addresses and message bodies. To train locally, place an appropriately licensed dataset named `emails.csv` in the project directory. It must contain these columns:
+The `emails.csv` dataset is from [Phishing Email Dataset](https://www.kaggle.com/datasets/naserabdullahalam/phishing-email-dataset) by Naser Abdullah Alam on Kaggle. The Kaggle listing declares it under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); retain this attribution and license when redistributing the dataset or adaptations.
+
+The dataset contains these columns:
 
 ```text
 id, subject, sender, body, contains_link, urgent_word, suspicious_sender, label
 ```
 
-The training script verifies the column names and binary labels. It trains on the combined `subject` and `body`; the other columns are dataset metadata. The expected labels are `0` (ham) and `1` (spam). The app treats class `1` as the positive phishing-risk class. The dataset and generated model files are ignored by Git.
+The training script verifies the column names and binary labels. It trains on the combined `subject` and `body`; the other columns are dataset metadata. The expected labels are `0` (ham) and `1` (spam). The app treats class `1` as the positive phishing-risk class.
+
+The Kaggle dataset page requests citing: Al-Subaiey et al., *Novel Interpretable and Robust Web-based AI Platform for Phishing Email Detection* (2024), [arXiv:2405.11619](https://arxiv.org/abs/2405.11619).
 
 ## Requirements
 
@@ -83,7 +87,7 @@ The extension reads the open message's subject, body, and sender, then submits t
 - `app.py` - Flask `/predict` API and phishing detection logic.
 - `train_model.py` - dataset validation, model training, evaluation, and artifact generation.
 - `check_csv.py` - validates the CSV header and row widths.
-- `emails.csv` - local training dataset (not included).
+- `emails.csv` - Kaggle training dataset (CC BY-SA 4.0; attribution above).
 - `model.pkl`, `vectorizer.pkl` - generated model and TF-IDF artifacts (not included).
 - `extensions/manifest.json` - Chrome extension configuration.
 - `extensions/content.js`, `extensions/style.css` - Gmail analysis and warning card.
@@ -93,7 +97,6 @@ The extension reads the open message's subject, body, and sender, then submits t
 ## Notes
 
 - Run commands from the project directory so `train_model.py` can locate `emails.csv`.
-- Add a compatible local `emails.csv` and train the model before starting the API; the dataset and generated artifacts are intentionally not in the repository.
 - Retrain the model after changing the dataset; the generated pickle files should correspond to the current training script and data.
 - The trusted sender list and rule-based checks are configured in `app.py`.
 
