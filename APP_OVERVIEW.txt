@@ -1,0 +1,183 @@
+================================================================================
+PHISHING EMAIL DETECTOR - APPLICATION OVERVIEW
+================================================================================
+
+PROJECT SUMMARY
+================================================================================
+This project classifies email subject and body text using a trained
+machine-learning model and additional rule-based checks. A Flask API provides
+predictions, and a Chrome extension displays results in Gmail.
+
+
+DATASET
+================================================================================
+File: emails.csv
+
+Columns:
+  id, subject, sender, body, contains_link, urgent_word, suspicious_sender, label
+
+Labels:
+  0 = ham
+  1 = spam
+
+The app treats class 1 as the positive phishing-risk class.
+
+The training script uses the combined subject and body as model input. The
+remaining fields are retained as dataset metadata and are not model features.
+The dataset is not tracked in the public repository because it contains sender
+addresses and email bodies. Provide an appropriately licensed local emails.csv
+before training.
+
+
+COMPONENTS
+================================================================================
+
+1. Flask Prediction API (app.py)
+   - Loads model.pkl and vectorizer.pkl from the project directory.
+   - Exposes POST /predict.
+   - Accepts subject, body, and optional sender fields.
+   - Also accepts text instead of body for compatibility.
+   - Combines subject and body, applies the same text cleaning as training,
+     calculates class-1 probability, and applies rule-based adjustments.
+   - Returns risk, prediction, probability, and unique reasons as JSON.
+   - Returns HTTP 400 when the request is not a JSON object or contains no
+     subject/body text.
+   - Runs at http://127.0.0.1:5000 when started with python app.py.
+
+2. Model Training (train_model.py)
+   - Checks that the CSV has the expected eight columns and binary labels.
+   - Combines subject and body and cleans text before training.
+   - Uses a stratified 80/20 train/test split.
+   - Trains a TF-IDF vectorizer and logistic regression classifier.
+   - Reports accuracy, classification report, and confusion matrix.
+   - Writes model.pkl and vectorizer.pkl.
+   - These generated model files are ignored by Git.
+
+3. CSV Validation (check_csv.py)
+   - Verifies the CSV header and confirms every data row has eight columns.
+
+4. Gmail Chrome Extension (extensions/)
+   - Runs on https://mail.google.com/*.
+   - Reads the open email's subject, body, and sender.
+   - Sends those fields to the local Flask /predict endpoint.
+   - Displays the returned verdict, risk score, and reasons in a warning card.
+
+5. Web Interface Assets (templates/ and static/)
+   - Include an email input page and client-side prediction display.
+   - The page submits subject, sender, and body to /predict.
+   - Flask serves this page at /.
+
+
+PREDICTION REQUEST AND RESPONSE
+================================================================================
+
+Example request:
+  POST /predict
+  Content-Type: application/json
+
+  {
+    "subject": "Please verify your account",
+    "body": "Review your account details.",
+    "sender": "sender@example.com"
+  }
+
+The body field may be replaced by text. The sender field is optional.
+
+Example response:
+
+  {
+    "risk": 68,
+    "prediction": "Suspicious",
+    "probability": 0.72,
+    "reasons": ["Suspicious keyword: verify"]
+  }
+
+The risk score is normalized to 0-100 and includes rule-based adjustments.
+Probability is the model's estimated probability for class 1; it is not the
+same as the combined risk score.
+
+
+DETECTION LOGIC
+================================================================================
+
+Machine-learning score:
+  - Logistic regression classifier using TF-IDF features.
+  - Probability for class 1 is scaled to a base score from 0 to 70.
+
+Rule-based checks:
+  - Keywords: urgent, verify, login, update, click, and form.
+  - External link indicators such as http, .com, and .org.
+  - Hardcoded lookalikes including paypa1 and g00gle.
+  - Brand-containing domains for paypal, google, faysalbank, and facebook.
+  - The string "loin" as a possible spelling mistake.
+  - Trusted sender domain recognition.
+
+Scoring adjustments:
+  - +8 for each detected suspicious keyword.
+  - +10 for an external link indicator.
+  - +20 for a hardcoded lookalike domain.
+  - +15 for a brand-containing domain considered suspicious.
+  - +10 when "loin" appears in analyzed text.
+  - -40 for a trusted sender, with a minimum score of 0.
+  - Final risk is capped at 100.
+
+Verdicts:
+  - Risk above 70: Phishing
+  - Risk above 40 through 70: Suspicious
+  - Risk 40 or below: Safe
+
+Trusted sender domains configured in app.py:
+  - nu.edu.pk
+  - jsbank.lmtd.com
+  - classroom.google.com
+
+
+SETUP
+================================================================================
+
+Install dependencies:
+  pip install flask flask-cors pandas scikit-learn
+
+Validate dataset:
+  python check_csv.py
+
+Train or retrain the model:
+  python train_model.py
+
+Start the API:
+  python app.py
+
+Load the Chrome extension:
+  1. Start the API and open chrome://extensions/.
+  2. Enable Developer mode.
+  3. Select Load unpacked and choose the extensions directory.
+  4. Reload Gmail.
+
+
+PROJECT FILES
+================================================================================
+app.py                    Flask prediction API
+train_model.py            Dataset loading and model training
+check_csv.py              CSV structure validation
+emails.csv                Email training dataset
+model.pkl                 Generated classifier
+vectorizer.pkl            Generated TF-IDF vectorizer
+extensions/manifest.json  Chrome extension configuration
+extensions/content.js     Gmail message extraction and API integration
+extensions/style.css      Gmail warning card styles
+templates/index.html      Email input page
+static/script.js          Web interface API client
+static/style.css          Web interface styles
+README.md                 Setup and usage guide
+APP_OVERVIEW.txt          This overview
+
+
+NOTES
+================================================================================
+- Run the Python commands from the project directory.
+- Keep the Flask API running while using the Gmail extension.
+- Retrain the model after changing the dataset.
+- The email dataset and generated model artifacts are intentionally excluded
+  from the repository; supply a local dataset and train before starting the API.
+- This project is provided as-is for learning and demonstration purposes.
+================================================================================

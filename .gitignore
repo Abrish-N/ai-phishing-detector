@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.env
+.venv/
+venv/
+.vscode/
+
+# Keep email content and artifacts trained from it out of the public repository.
+/emails.csv
+/model.pkl
+/vectorizer.pkl
